@@ -42,6 +42,8 @@ function card_path(	x1, y1, x2, y2)
 	cairo_arc (cr, x2-radius, y2-radius, radius, 2*math.pi, .5*math.pi)
 	cairo_close_path(cr)
 	cairo_fill( cr)
+	cairo_destroy(cr)
+	cr = cairo_create(surface)
 end
 
 --x and y should be the same an x1, y1 for the card under the text.
@@ -50,13 +52,13 @@ function card_text(text_list, author_text, x, y)
 	local font = "Free Sans"
 	local slant = CAIRO_FONT_SLANT_NORMAL
 	local weight = CAIRO_FONT_WEIGHT_BOLD
-	local size = 14
+	local size = 20
 	local rgba = {.2, .2, .2, 1}
 	local x1 = x + size
 	local y1 = y + size + 5
 	
-	for text in text_list do
-		cairo_set_source_rgba(cr, rgba[0], rgba[1], rgba[2], rgba[3])
+	for i, text in pairs(text_list) do
+		cairo_set_source_rgba(cr, rgba[1], rgba[2], rgba[3], rgba[4])
 		cairo_set_font_size(cr, size)
 		cairo_set_font_face(cr, font, slant, weight)
 		cairo_move_to(cr, x1, y1)
@@ -69,12 +71,13 @@ function card_text(text_list, author_text, x, y)
 	--draw author
 	local author
 	if author_text == nil then author = "Anon" else author = author_text end
+	author = "--".. author
 	--todo find a better way to move to right
-	x1 = math.floor(conky_window.width)-10-5-(string.len(author)*size)
-	y1 = math.floor(y/100)*100 + 100 - 10 - size
+	x1 = math.floor(conky_window.width)-10-5-(string.len(author)*size/2)
+	y1 = math.floor(y/100)*100 + 100 - gap - size
 	slant = CAIRO_FONT_SLANT_ITALIC
-	rgba = {93/255.0, 88/255.0, 102/255.0}
-	cairo_set_source_rgba(cr, rgba[0], rgba[1], rgba[2], rgba[3])
+	rgba = {93/255.0, 88/255.0, 102/255.0, 1}
+	cairo_set_source_rgba(cr, rgba[1], rgba[2], rgba[3], rgba[4])
 	cairo_set_font_size(cr, size)
 	cairo_set_font_face(cr, font, slant, weight)
 	cairo_move_to(cr, x1, y1)
@@ -95,19 +98,59 @@ function conky_main()
 											conky_window.visual,
 											conky_window.width,
 											conky_window.height)
+	--Card list
+	cpus = {tonumber(conky_parse("${cpu cpu0}")),
+		tonumber(conky_parse("${cpu cpu1}")),
+		tonumber(conky_parse("${cpu cpu2}")),
+		tonumber(conky_parse("${cpu cpu3}")),
+		tonumber(conky_parse("${cpu cpu4}")),
+		tonumber(conky_parse("${cpu cpu5}")),
+		tonumber(conky_parse("${cpu cpu6}")),
+		tonumber(conky_parse("${cpu cpu7}")),
+		tonumber(conky_parse("${cpu cpu8}")),
+		tonumber(conky_parse("${cpu cpu9}")),
+		tonumber(conky_parse("${cpu cpu10}")),
+		tonumber(conky_parse("${cpu cpu11}")),
+		tonumber(conky_parse("${cpu cpu12}")),
+		tonumber(conky_parse("${cpu cpu13}")),
+		tonumber(conky_parse("${cpu cpu14}")),
+		tonumber(conky_parse("${cpu cpu15}"))}
+	local cpu_sum = 0
+	for i, cpu in pairs(cpus) do
+		cpu_sum = cpu_sum+cpu
+		end
+	cpu_sum = cpu_sum/16
+	local cards = {
+		{
+			text = {conky_parse("The ${running_processes} things that you probably"),
+				"know are running on your computer."},
+			author = "In the Running"
+			},
+		{
+			text = {conky_parse("The ${processes} scary things that you"),
+				"don't know are running."},
+			author = "Gremlins"
+			},
+		{
+			text = {"You may be using only "..tostring(cpu_sum).."%",
+				"of your CPU!"},
+			author = "Missed Cycles, Inc."
+			}
+		}
+	local x = 5
+	local y = 5
+	local x2 = conky_window.width-10
+	local y2 = 100
+	gap = 5
 	--leaving out the 'local' makes this a global
 	cr = cairo_create(surface)
-	card_path(5, 5, conky_window.width-10, 100)
-	cairo_destroy(cr)
-	cr = cairo_create(surface)
-	local value = tonumber(conky_parse("${running_processes}"))
-	local value_text = conky_parse("The ${running_processes} things that you probably know are running.")
-	cairo_set_source_rgba(cr, .2,.2,.2,1)
-	cairo_select_font_face(cr, "Free Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-	cairo_set_font_size(cr, 14)
-	cairo_move_to(cr, 20, 25)
-	cairo_show_text(cr, value_text)
-	cairo_stroke(cr)
+	
+	for i, card in pairs(cards) do
+		card_path(x, y, x2, y2)
+		card_text(card.text, card.author, x, y)
+		y = y2 + gap
+		y2 = y2 + 100
+	end 
 	
 	
 	cairo_destroy(cr)
