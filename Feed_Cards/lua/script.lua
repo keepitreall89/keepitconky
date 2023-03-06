@@ -51,7 +51,7 @@ end
 function card_text(text_list, author_text, x, y)
 	local font = "Free Sans"
 	local slant = CAIRO_FONT_SLANT_NORMAL
-	local weight = CAIRO_FONT_WEIGHT_BOLD
+	local weight = CAIRO_FONT_WEIGHT_NORMAL
 	local size = 20
 	local rgba = {.2, .2, .2, 1}
 	local x1 = x + size
@@ -60,7 +60,7 @@ function card_text(text_list, author_text, x, y)
 	for i, text in pairs(text_list) do
 		cairo_set_source_rgba(cr, rgba[1], rgba[2], rgba[3], rgba[4])
 		cairo_set_font_size(cr, size)
-		cairo_set_font_face(cr, font, slant, weight)
+		cairo_select_font_face(cr, font, slant, weight)
 		cairo_move_to(cr, x1, y1)
 		cairo_show_text(cr, text)
 		cairo_stroke(cr)
@@ -71,15 +71,17 @@ function card_text(text_list, author_text, x, y)
 	--draw author
 	local author
 	if author_text == nil then author = "Anon" else author = author_text end
-	author = "--".. author
+	author = "@".. author
 	--todo find a better way to move to right
-	x1 = math.floor(conky_window.width)-10-5-(string.len(author)*size/2)
+	x1 = math.floor(conky_window.width)-10-5-math.floor(string.len(author)*size/1.5)
 	y1 = math.floor(y/100)*100 + 100 - gap - size
 	slant = CAIRO_FONT_SLANT_ITALIC
+	weight = CAIRO_FONT_WEIGHT_BOLD
+	font = "FreeMono"
 	rgba = {93/255.0, 88/255.0, 102/255.0, 1}
 	cairo_set_source_rgba(cr, rgba[1], rgba[2], rgba[3], rgba[4])
 	cairo_set_font_size(cr, size)
-	cairo_set_font_face(cr, font, slant, weight)
+	cairo_select_font_face(cr, font, slant, weight)
 	cairo_move_to(cr, x1, y1)
 	cairo_show_text(cr, author)
 	cairo_stroke(cr)
@@ -124,7 +126,7 @@ function conky_main()
 		{
 			text = {conky_parse("The ${running_processes} things that you probably"),
 				"know are running on your computer."},
-			author = "In the Running"
+			author = "In_the_Running"
 			},
 		{
 			text = {conky_parse("The ${processes} scary things that you"),
@@ -134,7 +136,7 @@ function conky_main()
 		{
 			text = {"You may be using only "..tostring(cpu_sum).."%",
 				"of your CPU!"},
-			author = "Missed Cycles, Inc."
+			author = "Missed_Cycles_Inc"
 			}
 		}
 	local x = 5
